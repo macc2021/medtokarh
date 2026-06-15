@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meditación</title>
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+html{
+    height:100%;
+}
+body{
+    min-height:100svh;
+    padding:24px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:linear-gradient(
+        180deg,
+        #f8f7ff 0%,
+        #f1efff 100%
+    );
+    color:#2d3748;
+}
+.container{
+    width:100%;
+    max-width:420px;
+    text-align:center;
+}
+.breath{
+    width:120px;
+    height:120px;
+    margin:0 auto 32px;
+    border-radius:50%;
+    background:radial-gradient(
+        circle,
+        #d6bcfa,
+        #b794f4
+    );
+    animation:breathe 8s ease-in-out infinite;
+}
+@keyframes breathe{
+    0%{
+        transform:scale(.85);
+    }
+    50%{
+        transform:scale(1.05);
+    }
+    100%{
+        transform:scale(.85);
+    }
+}
+h1{
+    font-size:2rem;
+    font-weight:300;
+    margin-bottom:12px;
+}
+.subtitle{
+    color:#718096;
+    line-height:1.7;
+    margin-bottom:36px;
+}
+.botones{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+button{
+    width:100%;
+    min-height:56px;
+    border:none;
+    border-radius:16px;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all .2s ease;
+}
+button:active{
+    transform:scale(.98);
+}
+#startBtn{
+    background:#6b46c1;
+    color:white;
+}
+#startBtn:hover:not(:disabled){
+    opacity:.95;
+}
+#stopBtn{
+    background:#e2e8f0;
+    color:#4a5568;
+}
+button:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+#status{
+    margin-top:24px;
+    min-height:60px;
+    color:#4a5568;
+    line-height:1.6;
+    white-space:pre-line;
+}
+.footer{
+    margin-top:30px;
+    font-size:.9rem;
+    color:#a0aec0;
+}
+@media (max-height:650px){
+    .breath{
+        width:90px;
+        height:90px;
+        margin-bottom:20px;
+    }
+    h1{
+        font-size:1.7rem;
+    }
+    .subtitle{
+        margin-bottom:20px;
+    }
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="breath"></div>
+    <h1>Med to Kath</h1>
+    <p class="subtitle">
+        Respira profundamente y permite que la calma llegue.
+    </p>
+    <div class="botones">
+        <button id="startBtn">Comenzar</button>
+        <button id="stopBtn" disabled>Detener</button>
+    </div>
+    <div id="status"></div>
+    <div class="footer">
+        Un momento para ti ✨
+    </div>
+</div>
+<audio id="audioPlayer" loop></audio>
+<script>
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const statusText = document.getElementById('status');
+const audioPlayer = document.getElementById('audioPlayer');
+let timeoutId;
+let startTime;
+function formatDuration(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes} minuto(s) y ${seconds} segundo(s)`;
+}
+startBtn.addEventListener('click', async () => {
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    statusText.textContent =
+    "Preparando tu sesión...";
+    try {
+        const musicRes = await fetch('/api/music');
+        const musicList = await musicRes.json();
+        if (musicList.length === 0) {
+            statusText.textContent =
+            "Error: Agrega archivos de audio a la carpeta ./music";
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            return;
+        }
+        const randomMusic =
+        musicList[Math.floor(Math.random() * musicList.length)];
+        const minMs = 15 * 60 * 1000;
+        const maxMs = 60 * 60 * 1000;
+        const randomDuration =
+        Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+        audioPlayer.src = `/music/${randomMusic}`;
+        audioPlayer.loop = true;
+        await audioPlayer.play();
+        startTime = Date.now();
+        statusText.textContent =
+        "Respira y concéntrate. La sesión está en curso.";
+        timeoutId = setTimeout(async () => {
+            audioPlayer.pause();
+            const elapsedMs =
+            Date.now() - startTime;
+            const durationText =
+            formatDuration(elapsedMs);
+            const alarmRes =
+            await fetch('/api/alarms');
+            const alarmList =
+            await alarmRes.json();
+            if (alarmList.length > 0) {
+                const randomAlarm =
+                alarmList[Math.floor(Math.random() * alarmList.length)];
+                audioPlayer.src =
+                `/alarms/${randomAlarm}`;
+                audioPlayer.loop = false;
+                await audioPlayer.play();
+                statusText.textContent =
+                `Sesión finalizada.\nTiempo meditado: ${durationText}`;
+            } else {
+                statusText.textContent =
+                `Sesión finalizada.\nTiempo meditado: ${durationText}`;
+            }
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+        }, randomDuration);
+    } catch (error) {
+        console.error(error);
+        statusText.textContent =
+        "Error de red al intentar cargar el audio.";
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+    }
+});
+stopBtn.addEventListener('click', () => {
+    clearTimeout(timeoutId);
+    const elapsedMs =
+    Date.now() - startTime;
+    const durationText =
+    formatDuration(elapsedMs);
+    audioPlayer.pause();
+    audioPlayer.currentTime = 0;
+    statusText.textContent =
+    `Sesión detenida manualmente.\nTiempo meditado: ${durationText}`;
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+});
+</script>
+</body>
+</html>

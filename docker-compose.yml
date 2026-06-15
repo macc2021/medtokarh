@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  app-meditacion:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      # Estos volúmenes permiten que actualices los archivos en tu host 
+      # y se reflejen inmediatamente en el contenedor sin reconstruir.
+      - ./static:/app/static
+      - ./music:/app/music
+      - ./alarms:/app/alarms
+    restart: unless-stopped

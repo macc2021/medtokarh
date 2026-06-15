@@ -1,0 +1,32 @@
+[
+  {
+    "start": "2026-06-13 01:56:06",
+    "end": "2026-06-13 01:56:14",
+    "duration_minutes": 44,
+    "status": "stopped"
+  },
+  {
+    "start": "2026-06-13 01:54:58",
+    "end": "2026-06-13 01:55:11",
+    "duration_minutes": 48,
+    "status": "stopped"
+  },
+  {
+    "start": "2026-06-13 01:54:35",
+    "end": "2026-06-13 01:54:54",
+    "duration_minutes": 35,
+    "status": "stopped"
+  },
+  {
+    "start": "2026-06-13 01:49:32",
+    "end": "2026-06-13 01:49:36",
+    "duration_minutes": 27,
+    "status": "stopped"
+  },
+  {
+    "start": "2026-06-13 01:22:39",
+    "end": "2026-06-13 01:22:46",
+    "duration_minutes": 51,
+    "status": "stopped"
+  }
+]
